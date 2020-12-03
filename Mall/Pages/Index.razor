@@ -1,0 +1,162 @@
+﻿@page "/"
+@inject NavigationManager Navigator
+
+<div class="card">
+    <div class="card-header">
+        <label>Archivo 1</label>
+    </div>
+    @if (Jugador1.JugadorId != 0)
+    {//hay jugador
+        <div class="card-body">
+            <label>Nombres: @Jugador1.Nombres</label>
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            <label>Edad: @Jugador1.Edad</label>
+        </div>
+        <div class="card-footer">
+            <div class="form-group text-center" display: inline-block>
+                <button type="button" class="btn btn-primary" @onclick="@(e => Continuar(Jugador1))"> Iniciar</button>
+                <button type="button" class="btn btn-danger" @onclick="@(e => Eliminar(Jugador1))"> Eliminar</button>
+            </div>
+        </div>
+    }
+    else
+    {//no hay jugador
+        <div class="card-body">
+            <label>Vacío</label>
+        </div>
+        <div class="card-footer">
+            <div class="form-group text-center">
+                <a type="button" class="btn btn-primary" href="@($"Nuevo/{1}")"> Comenzar</a>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <label>Archivo 2</label>
+    </div>
+    @if (Jugador2.JugadorId != 0)
+    {//hay jugador
+        <div class="card-body">
+            <label>Nombres: @Jugador2.Nombres</label>
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            <label>Edad: @Jugador2.Edad</label>
+        </div>
+        <div class="card-footer">
+            <div class="form-group text-center" display: inline-block>
+                <button type="button" class="btn btn-primary" @onclick="@(e => Continuar(Jugador2))"> Iniciar</button>
+                <button type="button" class="btn btn-danger" @onclick="@(e => Eliminar(Jugador2))"> Eliminar</button>
+            </div>
+        </div>
+    }
+    else
+    {//no hay jugador
+        <div class="card-body">
+            <label>Vacío</label>
+        </div>
+        <div class="card-footer">
+            <div class="form-group text-center">
+                <a type="button" class="btn btn-primary" href="@($"Nuevo/{2}")"> Comenzar</a>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="card-header">
+    <label>Archivo 3</label>
+</div>
+@if (Jugador3.JugadorId != 0)
+{//hay jugador
+    <div class="card-body">
+        <label>Nombres: @Jugador3.Nombres</label>
+        &nbsp;
+        &nbsp;
+        &nbsp;
+        &nbsp;
+        &nbsp;
+        <label>Edad: @Jugador3.Edad</label>
+    </div>
+    <div class="card-footer">
+        <div class="form-group text-center" display: inline-block>
+            <button type="button" class="btn btn-primary" @onclick="@(e => Continuar(Jugador3))"> Iniciar</button>
+            <button type="button" class="btn btn-danger" @onclick="@(e => Eliminar(Jugador3))"> Eliminar</button>
+        </div>
+    </div>
+}
+else
+{//no hay jugador
+    <div class="card-body">
+        <label>Vacío</label>
+    </div>
+    <div class="card-footer">
+        <div class="form-group text-center">
+            <a type="button" class="btn btn-primary" href="@($"Nuevo/{3}")"> Comenzar</a>
+        </div>
+    </div>
+}
+
+@code{
+    [CascadingParameter]
+    public Jugadores Jugador { get; set; }
+
+    public Jugadores Jugador1 { get; set; }
+    public Jugadores Jugador2 { get; set; }
+    public Jugadores Jugador3 { get; set; }
+
+    public List<Jugadores> ListaJugadores { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Jugador.JugadorId = 0;
+        Jugador.Nombres = string.Empty;
+        Jugador.Edad = 0;
+        Jugador.Dinero = 0;
+        Jugador.Archivo = 0;
+
+        Jugador1 = new Jugadores(0);
+        Jugador2 = new Jugadores(0);
+        Jugador3 = new Jugadores(0);
+        ListaJugadores = JugadoresBLL.GetList(j => true);
+        AsignarArchivos();
+    }
+
+    private void AsignarArchivos()
+    {
+        foreach (var jugador in ListaJugadores)
+        {
+            if (jugador.Archivo == 1)
+                Jugador1 = jugador;
+            else if (jugador.Archivo == 2)
+                Jugador2 = jugador;
+            else if (jugador.Archivo == 3)
+                Jugador3 = jugador;
+        }
+    }
+
+    private void Continuar(Jugadores jugador)
+    {
+        Jugador.JugadorId = jugador.JugadorId;
+        Jugador.Nombres = jugador.Nombres;
+        Jugador.Edad = jugador.Edad;
+        Jugador.Dinero = jugador.Dinero;
+        Jugador.Archivo = jugador.Archivo;
+        Navigator.NavigateTo("Continuar");
+    }
+
+    private void Eliminar(Jugadores jugador)
+    {
+        jugador.Archivo = 0;
+        JugadoresBLL.Modificar(jugador);
+        CuentasBancariasBLL.Eliminar(jugador.JugadorId);
+        jugador.JugadorId = 0;
+    }
+}

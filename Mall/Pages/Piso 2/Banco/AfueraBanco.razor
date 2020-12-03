@@ -1,0 +1,36 @@
+﻿@page "/AfueraBanco"
+
+<div class="form-group d-flex justify-content-center">
+    <h5>Afuera Banco</h5>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <a class="btn btn-primary" href="@("LobbyBanco")">Entrar al Banco</a>
+</div>
+
+<div class="form-group">
+    <div class="row">
+        <div class="col-10">
+            <img src="../Resources/entradaBanco.jpg" style="width:70%; height:400px" />
+        </div>
+        <div class="col">
+            @if (Jugador.Edad >= 18)
+            {
+                <a class="btn btn-primary" href="@("Cajero")">Ir al Cajero</a>
+            }
+            else
+            {
+                <label>Edad insuficiente para ir al cajero.</label>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <a class="btn btn-primary" href="@("Pasillo2")">Ir al Pasillo</a>
+</div>
+
+@code{
+    [CascadingParameter]
+    public Jugadores Jugador { get; set; }
+}

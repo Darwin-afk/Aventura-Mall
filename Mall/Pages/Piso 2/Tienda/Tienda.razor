@@ -1,0 +1,152 @@
+﻿@page "/Tienda"
+
+@inject IToastService toast
+
+<div class="form-row">
+    <div class="form-group">
+        <label>Metodo de Pago</label>
+        <select class="form-control" @bind="MetodoPago">
+            <option value="0" disabled selected>Seleccione un Metodo de Pago</option>
+            <option value="1">Efectivo</option>
+            <option value="2">Tarjeta</option>
+        </select>
+    </div>
+    &nbsp;
+    <div class="form-group">
+        <label>Tarjeta</label>
+        <select class="form-control" @bind="Tarjeta">
+            <option value="0" disabled selected>Seleccione una Tarjeta</option>
+            @foreach (var cuenta in Cuentas)
+            {
+                <option value="@cuenta.CuentaId">@cuenta.NumeroTarjeta - Saldo:$@cuenta.Saldo</option>
+            }
+        </select>
+    </div>
+    &nbsp;
+</div>
+
+<div class="table-responsive text-nowrap" style="position: relative; height:200px; overflow: auto; display: block;">
+    <table class="table table-striped">
+        <thead class="thead-light">
+            <tr>
+                <th>Nombre Producto</th>
+                <th>Precio</th>
+                <th>Cantidad a Comprar</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody class="bg-white">
+            <tr>
+                <td>Leche sin Lactosa</td>
+                <td>70</td>
+                <td><input type="number" @bind-value="CantidadComprar[0]" /></td>
+                <td><button class="btn btn-primary" @onclick="@(c => Comprar(70,0))">Comprar</button></td>
+            </tr>
+            <tr>
+                <td>Agua Dasani</td>
+                <td>25</td>
+                <td><input type="number" @bind-value="CantidadComprar[1]" /></td>
+                <td><button class="btn btn-primary" @onclick="@(c => Comprar(25,1))">Comprar</button></td>
+            </tr>
+            <tr>
+                <td>Agua Saborizada Dasani</td>
+                <td>30</td>
+                <td><input type="number" @bind-value="CantidadComprar[2]" /></td>
+                <td><button class="btn btn-primary" @onclick="@(c => Comprar(30,2))">Comprar</button></td>
+            </tr>
+            <tr>
+                <td>Galletas Integrales</td>
+                <td>40</td>
+                <td><input type="number" @bind-value="CantidadComprar[3]" /></td>
+                <td><button class="btn btn-primary" @onclick="@(c => Comprar(40,3))">Comprar</button></td>
+            </tr>
+            <tr>
+                <td>Mani Japonés</td>
+                <td>50</td>
+                <td><input type="number" @bind-value="CantidadComprar[4]" /></td>
+                <td><button class="btn btn-primary" @onclick="@(c => Comprar(50,4))">Comprar</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="form-group">
+    <a class="btn btn-primary" href="@("AfueraTienda")">Salir</a>
+</div>
+
+<div class="form-group">
+    <label>@Jugador.Nombres</label>
+    <br />
+    <label>Dinero: $@Jugador.Dinero</label>
+</div>
+
+@code {
+    [CascadingParameter]
+    public Jugadores Jugador { get; set; }
+
+    //public int CantidadComprar { get; set; }
+    public int[] CantidadComprar { get; set; } = new int[5];
+    public string MetodoPago { get; set; }
+    public string Tarjeta { get; set; }
+
+    public List<CuentasBancarias> Cuentas { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Cuentas = CuentasBancariasBLL.GetList(c => c.JugadorId == Jugador.JugadorId).ToList();
+        MetodoPago = "0";
+        Tarjeta = "0";
+    }
+
+    private void Comprar(int precio, int i)
+    {
+        if (CantidadComprar[i] < 1)
+        {
+            return;
+        }
+
+        decimal Monto = CantidadComprar[i] * precio;
+
+        switch (MetodoPago)
+        {
+            case "1":
+                if (Monto <= Jugador.Dinero)
+                {
+                    Jugador.Dinero -= Monto;
+                }
+                else
+                {
+                    toast.ShowInfo("Cantidad insuficiente en efectivo para pagar.");
+                    return;
+                }
+                break;
+            case "2":
+                if (Tarjeta == "0")
+                {
+                    toast.ShowInfo("Debe Seleccionar alguna tarjeta para pagar.");
+                    return;
+                }
+
+                CuentasBancarias AuxCuenta = CuentasBancariasBLL.Buscar(Convert.ToInt32(Tarjeta));
+
+                if (Monto <= AuxCuenta.Saldo)
+                {
+                    AuxCuenta.Saldo -= Monto;
+                    CuentasBancariasBLL.Modificar(AuxCuenta);
+                    Cuentas = CuentasBancariasBLL.GetList(c => c.JugadorId == Jugador.JugadorId).ToList();
+                }
+                else
+                {
+                    toast.ShowInfo("Cantidad insuficiente en la cuenta para pagar.");
+                    return;
+                }
+
+                break;
+            default:
+                toast.ShowInfo("Debe Seleccionar un metodo de pago.");
+                break;
+        }
+
+        CantidadComprar = new int[5];
+    }
+}

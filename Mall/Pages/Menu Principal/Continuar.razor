@@ -1,0 +1,50 @@
+﻿@page "/Continuar"
+
+@inject NavigationManager Navigator
+
+<EditForm Model="Jugador" OnValidSubmit="Iniciar">
+    <div class="card">
+        <div class="class-header">
+            <h3>Continuar Juego</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>Dinero</label>
+                <InputNumber @bind-Value="Jugador.Dinero" class="form-control" />
+                <ValidationMessage For="@(() => Jugador.Dinero)" />
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="form-group text-center" display: inline-block>
+                <a type="button" class="btn btn-lg btn-primary" href="@("")"> Volver</a>
+                <button type="submit" class="btn btn-lg btn-primary"> Continuar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<div class="form-group">
+    <label>@Jugador.JugadorId</label>
+    <label>@Jugador.Nombres</label>
+    <label>@Jugador.Dinero</label>
+</div>
+
+@code {
+    [Parameter]
+    public int JugadorId { get; set; }
+
+    [CascadingParameter]
+    public Jugadores Jugador { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Jugador.Dinero = 0;
+    }
+
+    public void Iniciar()
+    {
+        //JugadoresBLL.Modificar(jugador);
+
+        Navigator.NavigateTo("AfueraMall");
+    }
+}

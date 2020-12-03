@@ -1,0 +1,43 @@
+﻿@page "/LobbyBanco"
+
+<div class="form-group d-flex justify-content-center">
+    <h5>Lobby Banco</h5>
+</div>
+
+<div class="form-group">
+    <div class="row">
+        <div class="col-4">
+            @if(Jugador.Edad >= 18)
+            {
+                <a class="btn btn-primary" href="@("ServicioBanco")">Servicio al Cliente</a>
+            }
+            else
+            {
+                <label>Edad insuficiente para crear una cuenta.</label>
+            }
+        </div>
+        <div class="col-6">
+            <img src="../Resources/lobbyBanco.png" style="width:70%; height:400px" />
+        </div>
+        <div class="col-2">
+            @if (Jugador.Edad >= 18)
+            {
+                <a class="btn btn-primary" href="@("CajaBanco")">Ir a Caja</a>
+            }
+            else
+            {
+                <label>Edad insuficiente para ir a la caja.</label>
+            }
+            
+        </div>
+    </div>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <a class="btn btn-primary" href="@("AfueraBanco")">Salir del Banco</a>
+</div>
+
+@code{
+    [CascadingParameter]
+    public Jugadores Jugador { get; set; }
+}

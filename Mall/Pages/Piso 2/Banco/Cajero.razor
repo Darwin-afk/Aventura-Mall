@@ -1,0 +1,160 @@
+﻿@page "/Cajero"
+
+@using System.Text.RegularExpressions;
+@inject NavigationManager Navigator
+
+<div class="form-group d-flex justify-content-center">
+    <h5>Cajero</h5>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <img src="../Resources/cajero.jpg" style="width:40%; height:350px" />
+</div>
+
+<div class="form-group">
+    <textarea class="form-control" @bind="Dialogo" />
+</div>
+
+<div class="form-group">
+    @if (Elejir == 1)
+    {
+        <button class="btn btn-primary" @onclick="Continuar">Continuar</button>
+    }
+    else if (Elejir == 2)
+    {
+        <button class="btn btn-primary" @onclick="Decision1">@Opcion1</button>
+        <button class="btn btn-primary" @onclick="Decision2">@Opcion2</button>
+        @*@if (Paso == 1)
+            {
+                <button class="btn btn-primary" @onclick="Decision3">@Opcion3</button>
+            }*@
+    }
+    else if (Elejir == 3)
+    {
+        <input type="text" class="form-control" @bind-value="Texto" />
+        <button class="btn btn-primary" @onclick="Validar">Validar</button>
+    }
+    else if (Elejir == 4)
+    {
+        <select class="form-control">
+            <option value="0" disabled selected> Seleccione una tarjeta </option>
+            @foreach (var cuenta in Cuentas)
+            {
+                <option @onclick="@(a => AsignarTarjeta(cuenta))">@cuenta.NumeroTarjeta</option>
+            }
+        </select>
+        <button class="btn btn-primary" @onclick="Decision2">@Opcion2</button>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    public Jugadores Jugador { get; set; }
+
+    public List<CuentasBancarias> Cuentas { get; set; }
+    public CuentasBancarias AuxCuenta { get; set; }
+
+    public int Paso { get; set; }
+
+    public string Dialogo { get; set; }
+
+    public int Elejir { get; set; }
+
+    public string Opcion1 { get; set; }
+    public string Opcion2 { get; set; }
+
+    public string Texto { get; set; }
+    public decimal Monto { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Cuentas = CuentasBancariasBLL.GetList(c => c.JugadorId == Jugador.JugadorId).ToList();
+        Paso = 1;
+        Dialogo = "Bienvenido";
+        Elejir = 2;
+        Opcion1 = "Continuar";
+        Opcion2 = "Salir";
+    }
+
+    private void Continuar()
+    {
+        switch (Paso)
+        {
+            case 1://seleccionar la tarjeta de donde se hara el retiro
+                Elejir = 4;
+                break;
+            case 2://ingresar cantidad a retirar
+                Elejir = 3;
+                break;
+            case 3://transaccion exitosa
+                Navigator.NavigateTo("AfueraBanco");
+                break;
+            case 4:
+                Paso = 2;
+                Elejir = 3;
+                break;
+        }
+    }
+
+    private void Validar()
+    {
+        switch (Paso)
+        {
+            case 2://ingresar cantidad a retirar
+                try
+                {
+                    Monto = Convert.ToDecimal(Texto);
+
+                    if (Monto <= AuxCuenta.Saldo)
+                    {//monto valido
+                        AuxCuenta.Saldo -= Monto;
+                        Jugador.Dinero += Monto;
+                        CuentasBancariasBLL.Modificar(AuxCuenta);
+                        Paso = 3;
+                        Dialogo = "Transacción exitosa. Su saldo es de: " + AuxCuenta.Saldo;
+                        Elejir = 1;
+                    }
+                    else
+                    {//monto invalido
+                        Paso = 4;
+                        Dialogo = "Monto invalido";
+                        Elejir = 1;
+                    }
+                }
+                catch (FormatException)
+                {//monto invalido
+                    Paso = 4;
+                    Dialogo = "Monto invalido";
+                    Elejir = 1;
+                }
+                break;
+        }
+    }
+
+    private void Decision1()
+    {
+        switch (Paso)
+        {
+            case 1://continuar a hacer el retiro
+                Dialogo = "Seleccione la tarjeta de donde retirara";
+                Elejir = 1;
+                break;
+        }
+    }
+
+    private void Decision2()
+    {
+        Navigator.NavigateTo("AfueraBanco");
+    }
+
+    private void AsignarTarjeta(CuentasBancarias cuenta)
+    {//seleccionar tarjeta a retirar
+        AuxCuenta = cuenta;
+        //seleccion realizada
+        Paso = 2;
+        Dialogo = "Ingrese la cantidad a retirar";
+        Elejir = 1;
+
+
+    }
+}

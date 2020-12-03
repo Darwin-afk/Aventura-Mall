@@ -1,0 +1,25 @@
+﻿@page "/AfueraMall"
+
+<div class="form-group d-flex justify-content-center">
+    <h5>Bienvenido a LanSan Mall</h5>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <img src="../Resources/AfueraMall.jpg" style="width:40%; height:350px" />
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <a class="btn btn-primary" href="@("")">Volver al Menu</a>
+    <a class="btn btn-primary" href="@("Lobby")">Entrar al Mall</a>
+</div>
+
+<div class="form-group">
+    <label>Nombre: @jugador.Nombres</label>
+    <br/>
+    <label>Dinero: @jugador.Dinero</label>
+</div>
+
+@code{
+    [CascadingParameter]
+    public Jugadores jugador { get; set; }
+}

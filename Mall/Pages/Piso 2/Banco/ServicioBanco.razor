@@ -1,0 +1,208 @@
+﻿@page "/ServicioBanco"
+
+@using System.Text.RegularExpressions;
+@inject NavigationManager Navigator
+
+<div class="form-group d-flex justify-content-center">
+    <h5>Servicio al Cliente</h5>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <img src="../Resources/servicioCliente.jpg" style="width:40%; height:350px" />
+</div>
+
+<div class="form-group">
+    <textarea class="form-control" @bind="Dialogo" />
+</div>
+
+<div class="form-group">
+    @if (Elejir == 1)
+    {
+        <button class="btn btn-primary" @onclick="Continuar">Continuar</button>
+    }
+    else if (Elejir == 2)
+    {
+        <button class="btn btn-primary" @onclick="Decision1">@Opcion1</button>
+        <button class="btn btn-primary" @onclick="Decision2">@Opcion2</button>
+    }
+    else if (Elejir == 3)
+    {
+        <input type="text" class="form-control" @bind-value="Texto" />
+        <button class="btn btn-primary" @onclick="Validar">Validar</button>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    public Jugadores Jugador { get; set; }
+
+    public CuentasBancarias Cuenta { get; set; }
+
+    public int Paso { get; set; }
+
+    public string Dialogo { get; set; }
+
+    public int Elejir { get; set; }
+
+    public string Opcion1 { get; set; }
+    public string Opcion2 { get; set; }
+
+    public string Texto { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Cuenta = new CuentasBancarias();
+        Paso = 1;
+        Dialogo = "Bienvenido al Banco. Que desea?";
+        Elejir = 1;
+        Opcion1 = "Crear Cuenta Bancaria";
+        Opcion2 = "Volver al Lobby";
+    }
+
+    private void Continuar()
+    {
+        switch (Paso)
+        {
+            case 1://elejir entre crear cuenta o volver al lobby
+                Elejir = 2;
+                break;
+            case 2://ingresar cedula
+                Elejir = 3;
+                break;
+            case 3://ingresar telefono
+                Elejir = 3;
+                break;
+            case 4://creo la cuenta
+                Dialogo = "Por favor proceda a realizar su primero deposito.";
+                Paso = 5;
+                break;
+            case 5://ir a caja
+                Cuenta.JugadorId = Jugador.JugadorId;
+                CuentasBancariasBLL.Guardar(Cuenta);
+                Navigator.NavigateTo("CajaBanco");
+                break;
+            case 6://cedula incorrecta
+                Paso = 2;
+                Elejir = 3;
+                break;
+            case 7://telefono incorrecta
+                Paso = 3;
+                Elejir = 3;
+                break;
+        }
+    }
+
+    private void Validar()
+    {
+        string cadena = Texto;
+        String expresion;
+
+        switch (Paso)
+        {
+            case 2://ingresar cedula
+                expresion = @"^\d{3}[- ]?\d{7}[- ]?\d{1}$";
+
+                if (Regex.IsMatch(cadena, expresion))
+                {
+                    if (Regex.Replace(cadena, expresion, String.Empty).Length == 0)
+                    {//cedula correcta
+                        Cuenta.Cedula = cadena;
+                        Texto = string.Empty;
+                        Paso = 3;
+                        Dialogo = "Muy bien. Ahora por favor faciliteme su numero telefónico.";
+                        Elejir = 1;
+                    }
+                    else
+                    {//cedula incorrecta
+                        Paso = 6;
+                        Dialogo = "Cedula incorrecta";
+                        Elejir = 1;
+                    }
+                }
+                else
+                {//cedula incorrecta
+                    Paso = 6;
+                    Dialogo = "Cedula incorrecta";
+                    Elejir = 1;
+                }
+                break;
+            case 3://ingresar telefono
+                expresion = @"^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$";
+
+                if (Regex.IsMatch(cadena, expresion))
+                {
+                    if (Regex.Replace(cadena, expresion, String.Empty).Length == 0)
+                    {//telefono correcto
+                        Texto = string.Empty;
+                        Cuenta.Telefono = cadena;
+                        Paso = 4;
+                        Cuenta.Numeracion = GenerarCuenta();
+                        Cuenta.NumeroTarjeta = GenerarTarjeta();
+                        Dialogo = "Excelente. Su cuenta bancaria ha sido creada, Este seria su numero de cuenta: " + Cuenta.Numeracion + ". Y este seria su numero de tarjeta: " + Cuenta.NumeroTarjeta;
+                        Elejir = 1;
+                    }
+                    else
+                    {//telefono incorrecto
+                        Paso = 7;
+                        Dialogo = "Telefono incorrecta";
+                        Elejir = 1;
+                    }
+                }
+                else
+                {//telefono incorrecto
+                    Paso = 7;
+                    Dialogo = "Telefono incorrecta";
+                    Elejir = 1;
+                }
+                break;
+        }
+    }
+
+    private void Decision1()
+    {
+        switch (Paso)
+        {
+            case 1://crear cuenta bancaria
+                Dialogo = "Ok, Permitame su cedula.";
+                Elejir = 1;
+                Paso = 2;
+                break;
+        }
+    }
+
+    private void Decision2()
+    {
+        switch (Paso)
+        {
+            case 1://volver al lobby
+                Navigator.NavigateTo("LobbyBanco");
+                break;
+        }
+    }
+
+    private string GenerarCuenta()
+    {
+        string numeracion = "";
+        Random random = new Random();
+
+        for(int i = 0; i < 10; i++)
+        {
+            numeracion = numeracion + Convert.ToString(random.Next(10));
+        }
+
+        return numeracion;
+    }
+
+    private string GenerarTarjeta()
+    {
+        string numeracion = "";
+        Random random = new Random();
+
+        for (int i = 0; i < 16; i++)
+        {
+            numeracion = numeracion + Convert.ToString(random.Next(10));
+        }
+
+        return numeracion;
+    }
+}

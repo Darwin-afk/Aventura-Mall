@@ -1,0 +1,90 @@
+﻿@page "/Ascensor/{Piso:int}"
+
+@using System.Threading;
+@inject NavigationManager Navigator
+
+<div class="form-group d-flex justify-content-center">
+    <h5>Ascensor</h5>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <input type="number" readonly @bind-value="Piso" />
+</div>
+
+<div class="form-group">
+    <div class="row">
+        <div class="col">
+            <button class="btn btn-primary" @onclick="@(c => CambiarPiso(1))">Piso 1 "Lobby"</button>
+            <br />
+            <button class="btn btn-primary" @onclick="@(c => CambiarPiso(2))">Piso 2 "Banco/Tienda"</button>
+        </div>
+        <div class="col-8">
+            @if (Abierto)
+            {
+                <img src="../Resources/ascensorAbierto.jpg" style="width:50%; height:350px" />
+            }
+            else
+            {
+                <img src="../Resources/ascensorCerrado.jpg" style="width:50%; height:350px" />
+            }
+        </div>
+    </div>
+</div>
+
+<div class="form-group d-flex justify-content-center">
+    <button class="btn btn-primary" @onclick="Salir">Salir del Ascensor</button>
+</div>
+
+@code {
+    [Parameter]
+    public int Piso { get; set; }
+
+    public bool Abierto { get; set; }
+
+    public Timer timer { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Abierto = true;
+    }
+
+    private void CambiarPiso(int piso)
+    {
+        if (Abierto == false || Piso == piso)
+            return;
+
+        Abierto = false;
+
+        timer = new Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                AlternarPiso(piso);
+                StateHasChanged();
+            });
+        }, null, 5000, 0);
+    }
+
+    private void AlternarPiso(int piso)
+    {
+        Piso = piso;
+        Abierto = true;
+        timer.Dispose();
+    }
+
+    private void Salir()
+    {
+        if (Abierto == false)
+            return;
+
+        switch (Piso)
+        {
+            case 1:
+                Navigator.NavigateTo("Lobby");
+                break;
+            case 2:
+                Navigator.NavigateTo("Pasillo2");
+                break;
+        }
+    }
+}
